@@ -35,10 +35,10 @@ except Exception as e:
     st.code(error_msg, language="python")
     st.stop()
 
-# Load a micro-slice of network traffic data to simulate "live packets" hitting our firewall
+# 🛡️ FIXED: Pointed simulation tracking to the localized, cloud-safe data file
 @st.cache_data
 def load_live_simulation_feed():
-    csv_path = os.path.join(BASE_DIR, "cleaned_improved_cicids2017.csv")
+    csv_path = os.path.join(BASE_DIR, "new_data_urls.csv")
     df = pd.read_csv(csv_path, nrows=1000)
     return df
 
@@ -51,7 +51,7 @@ st.sidebar.title("🛡️ Threat Intel Engine")
 st.sidebar.markdown("---")
 
 st.sidebar.subheader("🤖 Ask SOC AI Assistant")
-user_chat = st.sidebar.text_input("Query threat parameters:", placeholder="e.g., Explain a Portscan attack...")
+user_chat = st.sidebar.text_input("Query threat parameters:", placeholder="e.g., Explain a Portscan attack...", key="cyber_bot_query")
 if user_chat:
     with st.sidebar.spinner("Analyzing vectors..."):
         bot_response = ask_cyber_bot(user_chat)
@@ -80,12 +80,14 @@ with tab1:
     st.markdown("### Incoming Connection Pipeline")
     placeholder = st.empty()
     
-    # Setup base data framework
+    # Setup base data framework for visual simulation fallback
     initial_rows = sim_data.head(5).copy()
     initial_rows['AI_Analysis'] = 'BENIGN'
     
-    # 🔥 FIXED: Swapped out deprecated .applymap for .map to match modern Pandas
-    placeholder.dataframe(initial_rows[['Label', 'AI_Analysis']].style.map(
+    # Double check alignment with dynamic layout structures
+    display_cols = [col for col in ['Label', 'url', 'AI_Analysis'] if col in initial_rows.columns]
+    
+    placeholder.dataframe(initial_rows[display_cols].style.map(
         lambda x: 'background-color: #cffffc', subset=['AI_Analysis']
     ))
     
@@ -95,8 +97,13 @@ with tab1:
     if st.button("🔴 Start Live Monitoring Simulation"):
         for i in range(20):
             total_inspected += 5
-            sample_rows = sim_data.sample(5)
-            X_live = sample_rows[net_feats]
+            sample_rows = sim_data.sample(5).copy()
+            
+            # Reconstruct missing training features on the fly to prevent matrix runtime exceptions
+            X_live = pd.DataFrame(0, index=np.arange(len(sample_rows)), columns=net_feats)
+            for col in net_feats:
+                if col in sample_rows.columns:
+                    X_live[col] = sample_rows[col].values
             
             predictions = network_model.predict(X_live)
             sample_rows['AI_Analysis'] = predictions
@@ -110,8 +117,9 @@ with tab1:
             risk_tier = "CRITICAL" if threat_counter > 10 else "ELEVATED" if threat_counter > 2 else "LOW"
             m3.metric("Network Risk Index", risk_tier, delta=f"{((threat_counter/total_inspected)*100):.1f}% Threat Rate")
             
-            # 🔥 FIXED: Swapped out deprecated .applymap for .map here as well
-            placeholder.dataframe(sample_rows[['Label', 'AI_Analysis']].style.map(
+            display_cols_live = [col for col in ['Label', 'url', 'AI_Analysis'] if col in sample_rows.columns]
+            
+            placeholder.dataframe(sample_rows[display_cols_live].style.map(
                 lambda x: 'background-color: #ffcccc' if x != 'BENIGN' else 'background-color: #cffffc', subset=['AI_Analysis']
             ))
             time.sleep(1)
