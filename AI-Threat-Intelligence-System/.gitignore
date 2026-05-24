@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+train_malware.py
+train_network.py
+train_phishing.py
+trim_data.py
+malware_90ds_filtered.csv
+new_data_urls.csv[]
