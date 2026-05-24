@@ -5,17 +5,28 @@ import pickle
 import numpy as np
 import sqlite3
 import time
+import os  # Added to handle paths dynamically
 
 # Set up page styling
 st.set_page_config(page_title="Network Intrusion Detection System", layout="wide")
 st.title("🛡️ Network Traffic Intrusion Detection Dashboard")
 st.markdown("Monitor network logs, analyze traffic anomalies via SQL, and predict cyber threats using Machine Learning.")
 
+# ----------------------------------------------------------------------------------
+# DYNAMIC PATH BINDING FOR CLOUD HOSTING
+# ----------------------------------------------------------------------------------
+# Automatically discover the exact directory where this specific app.py file lives
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ids_model_path = os.path.join(BASE_DIR, "ids_model.pkl")
+model_features_path = os.path.join(BASE_DIR, "model_features.pkl")
+default_data_path = os.path.join(BASE_DIR, "network_logs_sample.csv")
+
 # 1. Load models and feature lists safely
 try:
-    with open("ids_model.pkl", "rb") as f:
+    with open(ids_model_path, "rb") as f:
         model = pickle.load(f)
-    with open("model_features.pkl", "rb") as f:
+    with open(model_features_path, "rb") as f:
         model_features = pickle.load(f)
     st.sidebar.success("🤖 ML Model Loaded Successfully!")
 except Exception as e:
@@ -30,7 +41,7 @@ uploaded_file = st.sidebar.file_uploader("Upload custom network logs (CSV format
 
 @st.cache_data
 def load_default_data():
-    return pd.read_csv("network_logs_sample.csv")
+    return pd.read_csv(default_data_path)  # Updated to use dynamic absolute file path
 
 # Initialize global status variables
 is_breach_detected = False
