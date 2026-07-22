@@ -5,11 +5,12 @@ import joblib
 import time
 import os
 import traceback
+import sys
 from chatbot import ask_cyber_bot
 
 # Set up page configurations
 st.set_page_config(page_title="AI Cyber Threat Intelligence SOC", layout="wide", page_icon="🛡️")
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # -------------------------------------------------------------------------
 # DYNAMIC PATH RESOLUTION FOR STREAMLIT CLOUD
 # -------------------------------------------------------------------------
