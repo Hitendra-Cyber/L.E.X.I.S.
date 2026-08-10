@@ -7,6 +7,10 @@ import os
 import traceback
 import sys
 from chatbot import ask_cyber_bot
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 # Set up page configurations
 st.set_page_config(page_title="AI Cyber Threat Intelligence SOC", layout="wide", page_icon="🛡️")
